@@ -16,7 +16,6 @@
 /storage/logs/*.log
 
 /temp
-/shop.sql
 /_ide_helper.php
 
 /.idea

@@ -42,13 +42,12 @@ class ApplySiteBranding extends Command
             return self::FAILURE;
         }
 
-        $existingTheme = BusinessSetting::where('type', 'homepage_select')->whereNull('lang')->first();
-        if (! $existingTheme || $force) {
-            BusinessSetting::updateOrCreate(
-                ['type' => 'homepage_select', 'lang' => null],
-                ['value' => $theme]
-            );
-        }
+        // Unlike the settings below, the theme is always applied: shop.sql already
+        // ships with a non-empty default (e.g. 'thecore'), so a "don't overwrite an
+        // existing value" guard here would mean SITE_THEME never takes effect after
+        // the first run. Re-running site:brand with a changed SITE_THEME should
+        // always switch the theme.
+        $this->setSetting('homepage_select', $theme);
 
         $applied = 0;
         foreach (self::MAP as $configKey => $settingType) {
@@ -62,10 +61,7 @@ class ApplySiteBranding extends Command
                 continue;
             }
 
-            BusinessSetting::updateOrCreate(
-                ['type' => $settingType, 'lang' => null],
-                ['value' => $value]
-            );
+            $this->setSetting($settingType, $value);
             $applied++;
         }
 
@@ -74,5 +70,22 @@ class ApplySiteBranding extends Command
         $this->info("Theme set to '{$theme}'. Applied {$applied} branding setting(s).");
 
         return self::SUCCESS;
+    }
+
+    /**
+     * BusinessSetting has no $fillable, so mass-assignment helpers like
+     * updateOrCreate() throw MassAssignmentException — set attributes
+     * directly instead, same pattern the original installer code uses.
+     */
+    private function setSetting(string $type, string $value): void
+    {
+        $setting = BusinessSetting::where('type', $type)->whereNull('lang')->first();
+        if (! $setting) {
+            $setting = new BusinessSetting();
+            $setting->type = $type;
+            $setting->lang = null;
+        }
+        $setting->value = $value;
+        $setting->save();
     }
 }
