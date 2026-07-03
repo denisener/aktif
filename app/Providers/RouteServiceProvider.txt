@@ -42,17 +42,29 @@ class RouteServiceProvider extends ServiceProvider
   {
     $this->mapApiRoutes();
 
-    $this->mapApiSellerRoutes();
+    if (config('features.multivendor')) {
+      $this->mapApiSellerRoutes();
+    }
 
     $this->mapAdminRoutes();
 
-    $this->mapSellerRoutes();
+    if (config('features.multivendor')) {
+      $this->mapSellerRoutes();
 
-    $this->mapAffiliateRoutes();
+      $this->mapSellerPackageRoutes();
+    }
 
-    $this->mapRefundRoutes();
+    if (config('features.affiliate')) {
+      $this->mapAffiliateRoutes();
+    }
 
-    $this->mapClubPointsRoutes();
+    if (config('features.refund_request')) {
+      $this->mapRefundRoutes();
+    }
+
+    if (config('features.club_points')) {
+      $this->mapClubPointsRoutes();
+    }
 
     $this->mapOtpRoutes();
 
@@ -62,17 +74,25 @@ class RouteServiceProvider extends ServiceProvider
 
     $this->mapPaytmRoutes();
 
-    $this->mapPosRoutes();
+    if (config('features.pos')) {
+      $this->mapPosRoutes();
+    }
 
-    $this->mapSellerPackageRoutes();
+    if (config('features.delivery_boy')) {
+      $this->mapDeliveryBoyRoutes();
+    }
 
-    $this->mapDeliveryBoyRoutes();
+    if (config('features.auction')) {
+      $this->mapAuctionRoutes();
+    }
 
-    $this->mapAuctionRoutes();
+    if (config('features.wholesale')) {
+      $this->mapWholesaleRoutes();
+    }
 
-    $this->mapWholesaleRoutes();
-
-    $this->mapPreorderRoutes();
+    if (config('features.preorder')) {
+      $this->mapPreorderRoutes();
+    }
 
     $this->mapCybersourceRoutes();
 
@@ -89,7 +109,7 @@ class RouteServiceProvider extends ServiceProvider
     $this->mapUddoktapayRoutes();
 
     $this->mapRedxRoutes();
-    
+
     $this->mapWebRoutes();
 
     // $this->mapInstallRoutes();
