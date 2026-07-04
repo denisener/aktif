@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\BusinessSetting;
 use App\Models\Currency;
 use App\Models\User;
+use App\Services\LicenseService;
 use Artisan;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -76,6 +77,17 @@ class InstallSite extends Command
         File::copy(base_path('app/Providers/RouteServiceProvider.txt'), base_path('app/Providers/RouteServiceProvider.php'));
 
         $this->call('site:brand');
+
+        if (config('license.code') && config('license.client_name')) {
+            $this->info('Activating license...');
+            $result = app(LicenseService::class)->activate();
+            if (empty($result['status'])) {
+                $this->error('License activation failed: ' . ($result['message'] ?? 'unknown error'));
+                return self::FAILURE;
+            }
+        } else {
+            $this->warn('LICENSE_CODE/LICENSE_CLIENT_NAME not set — skipping license activation.');
+        }
 
         Artisan::call('optimize:clear');
 

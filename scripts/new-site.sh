@@ -31,6 +31,9 @@
 #   SITE_ADMIN_EMAIL  admin login                 (default: admin@<domain>)
 #   SITE_ADMIN_PASSWORD  admin password           (default: randomly generated, printed once)
 #   SITE_THEME        theme folder name           (default: classic)
+#   LICENSE_CODE      LicenseBox license code for this site's activation
+#                     (default: blank — site:install skips activation if unset)
+#   LICENSE_CLIENT_NAME  LicenseBox activation identifier (default: the domain)
 #
 set -euo pipefail
 
@@ -55,6 +58,8 @@ DB_NAME="site_$(echo "$SITE_SLUG" | tr '-' '_')"
 ADMIN_EMAIL="${SITE_ADMIN_EMAIL:-admin@$DOMAIN}"
 ADMIN_PASSWORD="${SITE_ADMIN_PASSWORD:-$(openssl rand -base64 18 | tr -d '=+/')}"
 THEME="${SITE_THEME:-classic}"
+LICENSE_CODE="${LICENSE_CODE:-}"
+LICENSE_CLIENT_NAME="${LICENSE_CLIENT_NAME:-$DOMAIN}"
 
 if [ -e "$TARGET_DIR" ]; then
   echo "Error: $TARGET_DIR already exists." >&2
@@ -82,6 +87,8 @@ sed -i \
   -e "s/^SITE_NAME=.*/SITE_NAME=\"$(php_escape "$SITE_SLUG")\"/" \
   -e "s/^SITE_ADMIN_EMAIL=.*/SITE_ADMIN_EMAIL=\"$(php_escape "$ADMIN_EMAIL")\"/" \
   -e "s/^SITE_ADMIN_PASSWORD=.*/SITE_ADMIN_PASSWORD=\"$(php_escape "$ADMIN_PASSWORD")\"/" \
+  -e "s/^LICENSE_CODE=.*/LICENSE_CODE=\"$(php_escape "$LICENSE_CODE")\"/" \
+  -e "s/^LICENSE_CLIENT_NAME=.*/LICENSE_CLIENT_NAME=\"$(php_escape "$LICENSE_CLIENT_NAME")\"/" \
   .env
 
 echo "==> composer install"
@@ -100,6 +107,7 @@ cat <<SUMMARY
     Admin password: $ADMIN_PASSWORD
     Database:       $DB_NAME
     Theme:          $THEME
+    License:        $([ -n "$LICENSE_CODE" ] && echo "activated ($LICENSE_CLIENT_NAME)" || echo "not set — LICENSE_CODE was blank, site:install skipped activation")
 
     Reminders:
     - This app serves from the project root, not public/ (see repo notes) —
